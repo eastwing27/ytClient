@@ -1,32 +1,52 @@
 module Client
 
 open System.Text
-open System.Net;
-open System.Net.Http;
+open System.Net
+open System.Net.Http
+open Settings
 
-type RestClient (server:string) =
-    let _server = server
+type RestClient () =
+    let _server = settings.ApiDestination
+    let _apikey = settings.ApiKey
+
     let interprete (response:HttpResponseMessage)=
-        (response.StatusCode, 
-         if response.IsSuccessStatusCode then 
-             response.Content.ReadAsStringAsync().Result
-         else
-              response.ReasonPhrase)
+        (
+            response.StatusCode, 
+            if response.IsSuccessStatusCode then 
+               response.Content.ReadAsStringAsync().Result
+            else
+               response.ReasonPhrase
+        )
+
+    let flatten set =
+        if Seq.isEmpty set then
+            ""
+        else
+            set |> Seq.reduce (fun acc item -> acc + "&" + item)
+
+    let makeUri route options =
+        _server + "/" + 
+        route + 
+        "?key=" + _apikey + 
+        flatten options
         
-    member private this.Client = new HttpClient()
+    let client = new HttpClient()
 
-    member this.Post route body =
-        this.Client.PostAsync(_server+"/"+route, new StringContent(body, Encoding.UTF8, "application/json")).Result
+    let Post route body =
+        client.PostAsync((route, []) ||> makeUri, new StringContent(body, Encoding.UTF8, "application/json")).Result
         |> interprete
 
-    member this.Put route body =
-        this.Client.PutAsync(_server+"/"+route, new StringContent(body, Encoding.UTF8, "application/json")).Result
+    let Put route body =
+        client.PutAsync((route, []) ||> makeUri, new StringContent(body, Encoding.UTF8, "application/json")).Result
         |> interprete
 
-    member this.Get route =
-        this.Client.GetAsync(server+"/"+route).Result
+    let Get route options =
+        client.GetAsync((route, options) ||> makeUri).Result
         |> interprete
 
-    member this.Delete route =
-        this.Client.DeleteAsync(server+"/"+route).Result
+    let Delete route =
+        client.DeleteAsync((route, []) ||> makeUri).Result
         |> interprete
+
+    member this.GetLanguages() =
+        Get "getLangs" []

@@ -1,11 +1,13 @@
-﻿// Learn more about F# at http://fsharp.org
-
-open System
+﻿open System
 open Client
+open Newtonsoft.Json
+open System.Collections.Generic
 
 [<EntryPoint>]
 let main argv =
-    let rest = RestClient "https://geocode-maps.yandex.ru/1.x"
-    let result = rest.Get "?geocode=Хабаровск,+Шеронова+улица,+дом+7&format=json"
-    printfn "%A" result
+    let rest = RestClient()
+    let result = rest.GetLanguages()
+    let data = JsonConvert.DeserializeObject<IDictionary<string,Object>>(snd result)
+    data
+    |> Seq.iter (fun x -> printfn "%s: %A" x.Key x.Value)
     0 // return an integer exit code
