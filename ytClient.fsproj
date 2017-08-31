@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="CoreCompat.Newtonsoft.Json" Version="9.0.2-beta001"/>
     <Compile Include="Settings.fs"/>
+    <Compile Include="DTO.fs"/>
     <Compile Include="Client.fs"/>
     <Compile Include="Program.fs"/>
   </ItemGroup>
